@@ -1,6 +1,7 @@
 const canvasSketch = require('canvas-sketch');
 const random = require('canvas-sketch-util/random');
 const math = require('canvas-sketch-util/math');
+const TweakPane = require('tweakpane');
 
 
 
@@ -9,8 +10,15 @@ const settings = {
   animate: true,
 };
 
+
+const params = {
+  elements: 25,
+  dist: 200,
+}
+
 const sketch = ({ context, width, height }) => {
   const agents = [];
+  
 
   for(let i=0; i<25; i++){
     const x = random.range(0, width);
@@ -18,25 +26,27 @@ const sketch = ({ context, width, height }) => {
     const cor1 = random.range(0, 255).toFixed(0);
     const cor2 = random.range(0, 255).toFixed(0);
     const cor3 = random.range(0, 255).toFixed(0);
-    agents.push(new Agent(x, y, cor1, cor2, cor3))
+    agents.push(new Agent(x, y, cor1, cor2, cor3)) 
   }
- 
+
   return ({ context, width, height }) => {
     context.fillStyle = 'white';
     context.fillRect(0, 0, width, height);
-    
-    for (let i = 0; i< agents.length; i++){
-      const agent = agents[i];
 
+
+    for (let i = 0; i< params.elements; i++){
+      const agent = agents[i];
+      const dist = params.dist;
+      
       for(let j = (i+1); j<agents.length; j++){
         const other = agents[j];
-
+        
         const dist = agent.pos.getDistance(other.pos);
-
-        if(dist > 200) continue;
-
+        
+        if(dist > params.dist) continue;
+        
         context.lineWidth = math.mapRange(dist, 0, 200, 12, 1);
-
+        
         context.beginPath();
         context.moveTo(agent.pos.x, agent.pos.y);
         context.lineTo(other.pos.x, other.pos.y);
@@ -44,7 +54,7 @@ const sketch = ({ context, width, height }) => {
         context.stroke();
       }
     }
-      
+    
     agents.forEach(agent => {
       agent.update();
       agent.draw(context);
@@ -55,7 +65,19 @@ const sketch = ({ context, width, height }) => {
   };
 };
 
+const createPane = () => {
+  const pane = new TweakPane.Pane();
+  let folder;
+
+  folder = pane.addFolder({title: 'Elements'});
+
+  folder.addInput(params, 'elements',{min: 3, max: 30, step: 1})
+  folder.addInput(params, 'dist',{min: 100, max: 500, step: 1})
+}
+
+createPane();
 canvasSketch(sketch, settings);
+
 class Vector{
   constructor(x, y){
     this.x = x;
